@@ -21,6 +21,7 @@ const getPreparedProducts = (
   userId,
   query,
   categories,
+  handleSortByField,
 ) => (
   products
     .filter((product) => {
@@ -38,17 +39,48 @@ const getPreparedProducts = (
 
       return true;
     })
+    .sort(handleSortByField())
 );
 
 export const App = () => {
   const [activeUserId, setActiveUserId] = useState(0);
   const [query, setQuery] = useState('');
   const [activeCategoriesIds, setActiveCategoriesIds] = useState([]);
+  const [sortField, setSortField] = useState({ id: 0 });
+
+  const sortFieldName = Object.keys(sortField)[0];
+  const sortFieldValue = Object.values(sortField)[0];
+
+  const handleSortByField = () => (product1, product2) => {
+    if (sortFieldValue !== 0) {
+      switch (sortFieldName) {
+        case 'id':
+          return (product1.id - product2.id) * sortFieldValue;
+
+        case 'product':
+          return (product1.name.localeCompare(product2.name)) * sortFieldValue;
+
+        case 'category':
+          return (product1.category.title
+            .localeCompare(product2.category.title)) * sortFieldValue;
+
+        case 'user':
+          return (product1.user.name
+            .localeCompare(product2.user.name)) * sortFieldValue;
+
+        default:
+          throw new Error('An error with sort occured!');
+      }
+    }
+
+    return 0;
+  };
 
   const preparedProducts = getPreparedProducts(
     activeUserId,
     query,
     activeCategoriesIds,
+    handleSortByField,
   );
 
   const handleResetFilters = () => {
@@ -73,6 +105,22 @@ export const App = () => {
 
   const handleAllCatReset = () => {
     setActiveCategoriesIds([]);
+  };
+
+  const handleSortFieldSet = (newSortField) => {
+    setSortField((currentSortState) => {
+      if (newSortField === Object.keys(currentSortState)[0]) {
+        const clicksCount = currentSortState[newSortField];
+
+        if (clicksCount === 1) {
+          return { [newSortField]: -1 };
+        }
+
+        return { [newSortField]: clicksCount + 1 };
+      }
+
+      return { [newSortField]: 1 };
+    });
   };
 
   return (
@@ -212,9 +260,23 @@ export const App = () => {
                     <span className="is-flex is-flex-wrap-nowrap">
                       ID
 
-                      <a href="#/">
+                      <a
+                        href="#/"
+                        onClick={() => handleSortFieldSet('id')}
+                      >
                         <span className="icon">
-                          <i data-cy="SortIcon" className="fas fa-sort" />
+                          <i
+                            data-cy="SortIcon"
+                            className={classNames(
+                              'fas',
+                              { 'fa-sort': sortFieldValue === 0
+                                || sortFieldName !== 'id' },
+                              { 'fa-sort-down': sortFieldValue === -1
+                                && sortFieldName === 'id' },
+                              { 'fa-sort-up': sortFieldValue === 1
+                                && sortFieldName === 'id' },
+                            )}
+                          />
                         </span>
                       </a>
                     </span>
@@ -224,9 +286,23 @@ export const App = () => {
                     <span className="is-flex is-flex-wrap-nowrap">
                       Product
 
-                      <a href="#/">
+                      <a
+                        href="#/"
+                        onClick={() => handleSortFieldSet('product')}
+                      >
                         <span className="icon">
-                          <i data-cy="SortIcon" className="fas fa-sort-down" />
+                          <i
+                            data-cy="SortIcon"
+                            className={classNames(
+                              'fas',
+                              { 'fa-sort': sortFieldValue === 0
+                                || sortFieldName !== 'product' },
+                              { 'fa-sort-down': sortFieldValue === -1
+                                && sortFieldName === 'product' },
+                              { 'fa-sort-up': sortFieldValue === 1
+                                && sortFieldName === 'product' },
+                            )}
+                          />
                         </span>
                       </a>
                     </span>
@@ -236,9 +312,23 @@ export const App = () => {
                     <span className="is-flex is-flex-wrap-nowrap">
                       Category
 
-                      <a href="#/">
+                      <a
+                        href="#/"
+                        onClick={() => handleSortFieldSet('category')}
+                      >
                         <span className="icon">
-                          <i data-cy="SortIcon" className="fas fa-sort-up" />
+                          <i
+                            data-cy="SortIcon"
+                            className={classNames(
+                              'fas',
+                              { 'fa-sort': sortFieldValue === 0
+                                || sortFieldName !== 'category' },
+                              { 'fa-sort-down': sortFieldValue === -1
+                                && sortFieldName === 'category' },
+                              { 'fa-sort-up': sortFieldValue === 1
+                                && sortFieldName === 'category' },
+                            )}
+                          />
                         </span>
                       </a>
                     </span>
@@ -248,9 +338,23 @@ export const App = () => {
                     <span className="is-flex is-flex-wrap-nowrap">
                       User
 
-                      <a href="#/">
+                      <a
+                        href="#/"
+                        onClick={() => handleSortFieldSet('user')}
+                      >
                         <span className="icon">
-                          <i data-cy="SortIcon" className="fas fa-sort" />
+                          <i
+                            data-cy="SortIcon"
+                            className={classNames(
+                              'fas',
+                              { 'fa-sort': sortFieldValue === 0
+                                || sortFieldName !== 'user' },
+                              { 'fa-sort-down': sortFieldValue === -1
+                                && sortFieldName === 'user' },
+                              { 'fa-sort-up': sortFieldValue === 1
+                                && sortFieldName === 'user' },
+                            )}
+                          />
                         </span>
                       </a>
                     </span>
