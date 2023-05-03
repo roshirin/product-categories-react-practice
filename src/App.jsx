@@ -17,7 +17,11 @@ const products = productsFromServer.map((product) => {
   };
 });
 
-const getPreparedProducts = (userId, query) => (
+const getPreparedProducts = (
+  userId,
+  query,
+  categories,
+) => (
   products
     .filter((product) => {
       if (userId) {
@@ -27,17 +31,48 @@ const getPreparedProducts = (userId, query) => (
       return true;
     })
     .filter(product => product.name.toLowerCase().includes(query.toLowerCase()))
+    .filter((product) => {
+      if (categories.length) {
+        return categories.includes(product.category.id);
+      }
+
+      return true;
+    })
 );
 
 export const App = () => {
   const [activeUserId, setActiveUserId] = useState(0);
   const [query, setQuery] = useState('');
+  const [activeCategoriesIds, setActiveCategoriesIds] = useState([]);
 
-  const preparedProducts = getPreparedProducts(activeUserId, query);
+  const preparedProducts = getPreparedProducts(
+    activeUserId,
+    query,
+    activeCategoriesIds,
+  );
 
   const handleResetFilters = () => {
     setActiveUserId(0);
     setQuery('');
+    handleAllCatReset();
+  };
+
+  const handleActiveCatAdd = (id) => {
+    if (activeCategoriesIds.includes(id)) {
+      setActiveCategoriesIds(currentCategories => (
+        currentCategories.filter(category => category !== id)
+      ));
+
+      return;
+    }
+
+    setActiveCategoriesIds(currentCategories => (
+      [...currentCategories, id]
+    ));
+  };
+
+  const handleAllCatReset = () => {
+    setActiveCategoriesIds([]);
   };
 
   return (
@@ -113,41 +148,37 @@ export const App = () => {
               <a
                 href="#/"
                 data-cy="AllCategories"
-                className="button is-success mr-6 is-outlined"
+                className={classNames(
+                  'button',
+                  'is-success',
+                  'mr-6',
+                  { 'is-outlined': activeCategoriesIds.length },
+                )}
+                onClick={handleAllCatReset}
               >
                 All
               </a>
 
-              <a
-                data-cy="Category"
-                className="button mr-2 my-1 is-info"
-                href="#/"
-              >
-                Category 1
-              </a>
+              {categoriesFromServer.map((category) => {
+                const { id, title } = category;
 
-              <a
-                data-cy="Category"
-                className="button mr-2 my-1"
-                href="#/"
-              >
-                Category 2
-              </a>
-
-              <a
-                data-cy="Category"
-                className="button mr-2 my-1 is-info"
-                href="#/"
-              >
-                Category 3
-              </a>
-              <a
-                data-cy="Category"
-                className="button mr-2 my-1"
-                href="#/"
-              >
-                Category 4
-              </a>
+                return (
+                  <a
+                    data-cy="Category"
+                    className={classNames(
+                      'button',
+                      'mr-2',
+                      'my-1',
+                      { 'is-info': activeCategoriesIds.includes(id) },
+                    )}
+                    href="#/"
+                    onClick={() => handleActiveCatAdd(id)}
+                    key={id}
+                  >
+                    {title}
+                  </a>
+                );
+              })}
             </div>
 
             <div className="panel-block">
